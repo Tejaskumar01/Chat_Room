@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  labels:
+    app: chatroom
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chatroom
+  template:
+    metadata:
+      labels:
+        app: chatroom
+    spec:
+      containers:
+        - name: myapp-container
+          image: tejaskumar01/chatroom
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: "/app/data"
+              name: chatroom-storage
+      volumes:
+        - name: chatroom-storage
+          persistentVolumeClaim:
+            claimName: chatroom-pvc
