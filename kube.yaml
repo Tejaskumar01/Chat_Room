@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: my-deployment
+    labels:
+      app: chatroom
+spec:
+   template:
+      metadata:
+        labels:
+           app: chatroom
+      spec:
+         containers:
+            - name: myapp-container
+              image: manjuappu1375/chat_room
+              ports:
+               -  containerPort: 8080
+   selector:
+      matchLabels:
+          app: chatroom
+   replicas: 3
