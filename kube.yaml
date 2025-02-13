@@ -12,7 +12,7 @@ spec:
       spec:
          containers:
             - name: myapp-container
-              image: manjuappu1375/chat_room
+              image: tejaskumar01/chatroom
               ports:
                -  containerPort: 8080
    selector:
