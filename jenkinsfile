@@ -1,10 +1,18 @@
+def COLOR_MAP = [
+    'SUCCESS': 'good',
+    'FAILURE': 'danger'
+    ]
 pipeline {
     agent any
+    tools{
+        maven 'mvn'
+    }
      environment {
-        SCANNER_HOME = tool 'sonarqube'
+        SCANNER_HOME = tool 'sonar-scanner'
         IMAGE_NAME = "tejaskumar01/chatroom" // Name of the image created in Jenkins
-        CONTAINER_NAME = "chat_room" // Name of the container created in Jenkins
-     }
+        CONTAINER_NAME = "chat_room" 
+        
+             }
     stages {
         stage('clean worspace') {
         steps {
@@ -21,19 +29,21 @@ pipeline {
               sh 'mvn compile'
             }
         }
-         stage('code analysis') {
+         stage('code-analysis') {
             steps {
               withSonarQubeEnv('sonar-server') {
-               sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=chat_room \
+               sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Chat_Room \
                -Dsonar.java.binaries=. \
-               -Dsonar.projectKey=chat_room'''
+               -Dsonar.projectKey=Chat_Room'''
               }
             }
         }
          stage('OWASP FS SCAN') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                withCredentials([string(credentialsId: 'nvd_cred', variable: 'NVD_KEY')]) {
+                   dependencyCheck additionalArguments: "--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_KEY}", odcInstallation: 'DP-Check'
+             }
+            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
         stage('TRIVY FS SCAN') {
@@ -111,7 +121,7 @@ pipeline {
     post {
         always {
             echo 'slack Notification.'
-            slackSend channel: '#cicdpro',
+            slackSend channel: '#p1',
             color: COLOR_MAP [currentBuild.currentResult],
             message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URl}"
             
